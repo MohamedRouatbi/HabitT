@@ -6,9 +6,15 @@ function RouteGuard({ children }: { children: React.ReactNode }) {
   const isAuth = false;
   useEffect(() => {
     if (!isAuth) {
-      router.replace("/auth");
+      // Delay navigation to avoid navigating before mount
+      const timeout = setTimeout(() => {
+        router.replace("/auth");
+      }, 0);
+
+      return () => clearTimeout(timeout); // Cleanup
     }
-  });
+  }, []);
+
   return <>{children}</>;
 }
 export default function RootLayout() {
