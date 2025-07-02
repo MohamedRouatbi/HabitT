@@ -61,8 +61,10 @@ export default function AuthScreen() {
         <TextInput
           style={styles.input}
           label="Password"
+          secureTextEntry
           autoCapitalize="none"
           mode="outlined"
+          onChangeText={setPassword}
         />
         {error && <Text style={{ color: theme.colors.error }}>{error}</Text>}
         <Button style={styles.button} mode="contained" onPress={handleAuth}>

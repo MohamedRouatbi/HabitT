@@ -1,14 +1,34 @@
-import { createContext, useContext } from "react";
-import { ID } from "react-native-appwrite";
+import { createContext, useContext, useEffect, useState } from "react";
+import { ID, Models } from "react-native-appwrite";
 import { account } from "./appwrite";
 
 type AuthContextType = {
-  //user: Models.User<Models.Preferences> | null;
+  user: Models.User<Models.Preferences> | null;
+  isLoadingUser: boolean;
   signUp: (email: string, Password: string) => Promise<string | null>;
   signIn: (email: string, Password: string) => Promise<string | null>;
 };
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<Models.User<Models.Preferences> | null>(
+    null
+  );
+  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  const getUser = async () => {
+    try {
+      const currentUser = await account.get(); // 🔁 this returns the user
+      setUser(currentUser);
+    } catch (error) {
+      setUser(null);
+    } finally {
+      setIsLoadingUser(false);
+    }
+  };
   const signUp = async (email: string, Password: string) => {
     try {
       await account.create(ID.unique(), email, Password);
@@ -33,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
   return (
-    <AuthContext.Provider value={{ signIn, signUp }}>
+    <AuthContext.Provider value={{ user, signIn, signUp, isLoadingUser }}>
       {children}
     </AuthContext.Provider>
   );
