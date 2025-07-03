@@ -7,6 +7,7 @@ type AuthContextType = {
   isLoadingUser: boolean;
   signUp: (email: string, Password: string) => Promise<string | null>;
   signIn: (email: string, Password: string) => Promise<string | null>;
+  signOut: () => Promise<void>;
 };
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -21,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const getUser = async () => {
     try {
-      const currentUser = await account.get(); // 🔁 this returns the user
+      const currentUser = await account.get();
       setUser(currentUser);
     } catch (error) {
       setUser(null);
@@ -41,9 +42,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return " An Error occured in the signUp";
     }
   };
+  const signOut = async () => {
+    try {
+      await account.deleteSession("current");
+      setUser(null);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const signIn = async (email: string, Password: string) => {
     try {
       await account.createEmailPasswordSession(email, Password);
+      const session = await account.get();
+      setUser(session);
       return null;
     } catch (error) {
       if (error instanceof Error) {
@@ -53,7 +64,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
   return (
-    <AuthContext.Provider value={{ user, signIn, signUp, isLoadingUser }}>
+    <AuthContext.Provider
+      value={{ user, signIn, signUp, isLoadingUser, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );
